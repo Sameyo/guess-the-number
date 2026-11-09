@@ -32,6 +32,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      # Caches the Gradle download and dependencies between runs, so a
+      # flaky download from GitHub only matters on a cold cache.
+      - uses: gradle/actions/setup-gradle@v4
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
