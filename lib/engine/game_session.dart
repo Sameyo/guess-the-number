@@ -49,6 +49,9 @@ class GameSession {
   DateTime? _startedAt;
   DateTime? _endedAt;
 
+  /// Set while the timer is paused (e.g. the app is in the background).
+  Duration? _frozenElapsed;
+
   GameSession({
     required this.config,
     required this.secret,
@@ -76,6 +79,7 @@ class GameSession {
 
   /// Time played so far, or the final time once the game is over.
   Duration get elapsed {
+    if (_frozenElapsed != null) return _frozenElapsed!;
     if (_startedAt == null) return Duration.zero;
     return (_endedAt ?? clock()).difference(_startedAt!);
   }
@@ -96,6 +100,24 @@ class GameSession {
     _status = GameStatus.inProgress;
   }
 
+  /// True while the timer is paused.
+  bool get isPaused => _frozenElapsed != null;
+
+  /// Stops the timer, e.g. when the app goes to the background or the player
+  /// leaves the game to resume later. Has no effect unless in progress.
+  void pause() {
+    if (_status != GameStatus.inProgress || isPaused) return;
+    _frozenElapsed = elapsed;
+  }
+
+  /// Restarts a paused timer from where it stopped.
+  void resume() {
+    final frozen = _frozenElapsed;
+    if (frozen == null) return;
+    _startedAt = clock().subtract(frozen);
+    _frozenElapsed = null;
+  }
+
   /// Validates [input] without submitting it. Also rejects repeats of an
   /// earlier guess so a mis-tap doesn't waste a turn.
   GuessRejection? check(String input) {
@@ -113,6 +135,7 @@ class GameSession {
   /// Use [check] first to give the player friendly feedback.
   GuessEntry submit(String input) {
     start();
+    resume();
     checkTimeout();
     if (isOver) throw GameNotActiveException(_status);
 
@@ -131,7 +154,7 @@ class GameSession {
   /// Ends the game if the time limit has passed. Call from a UI ticker.
   /// Returns true if the game ended because of this call.
   bool checkTimeout() {
-    if (_status != GameStatus.inProgress) return false;
+    if (_status != GameStatus.inProgress || isPaused) return false;
     final limit = config.timeLimit;
     if (limit != null && elapsed >= limit) {
       _finish(GameStatus.lost, LossReason.outOfTime, _startedAt!.add(limit));
@@ -144,6 +167,7 @@ class GameSession {
   void giveUp() {
     if (isOver) return;
     start();
+    resume();
     _finish(GameStatus.lost, LossReason.gaveUp);
   }
 
@@ -151,6 +175,57 @@ class GameSession {
     _status = status;
     _lossReason = reason;
     _endedAt = at ?? clock();
+  }
+
+  /// Everything needed to rebuild this session with [GameSession.fromJson],
+  /// so an unfinished game can be resumed after the app closes.
+  Map<String, dynamic> toJson() => {
+    'config': config.toJson(),
+    'secret': secret.toString(),
+    'guesses': [
+      for (final g in _guesses)
+        {'guess': g.guess.toString(), 'elapsedMs': g.elapsed.inMilliseconds},
+    ],
+    'status': _status.name,
+    if (_lossReason != null) 'lossReason': _lossReason!.name,
+    'elapsedMs': elapsed.inMilliseconds,
+  };
+
+  /// Rebuilds a session saved with [toJson]. An unfinished game comes back
+  /// paused at the saved time; call [resume] when the board is shown again.
+  factory GameSession.fromJson(
+    Map<String, dynamic> json, {
+    Clock clock = systemClock,
+  }) {
+    final config = GameConfig.fromJson(json['config'] as Map<String, dynamic>);
+    final secret = Code.parse(json['secret'] as String, config);
+    final session = GameSession(config: config, secret: secret, clock: clock);
+    for (final g in json['guesses'] as List) {
+      final map = g as Map<String, dynamic>;
+      final guess = Code.parse(map['guess'] as String, config);
+      session._guesses.add(
+        GuessEntry(
+          guess,
+          Score.of(secret, guess),
+          Duration(milliseconds: map['elapsedMs'] as int),
+        ),
+      );
+    }
+    session._status = GameStatus.values.byName(json['status'] as String);
+    session._lossReason = json['lossReason'] == null
+        ? null
+        : LossReason.values.byName(json['lossReason'] as String);
+    if (session._status != GameStatus.notStarted) {
+      final elapsed = Duration(milliseconds: json['elapsedMs'] as int);
+      final now = clock();
+      session._startedAt = now.subtract(elapsed);
+      if (session.isOver) {
+        session._endedAt = now;
+      } else {
+        session._frozenElapsed = elapsed;
+      }
+    }
+    return session;
   }
 
   /// A summary for stats and records, available once the game is over.
