@@ -86,6 +86,72 @@ class DuelMatch implements Match {
          ),
        };
 
+  DuelMatch._restored({
+    required this.config,
+    required this.firstPlayer,
+    required this.equalTurns,
+    required Map<PlayerSlot, GameSession> sessions,
+    required PlayerSlot turn,
+  }) : _sessions = sessions,
+       // ignore: prefer_initializing_formals
+       _turn = turn {
+    final last = sessions.values.every((s) => s.guessCount == 0)
+        ? null
+        : (sessions[firstPlayer]!.guessCount >
+                  sessions[firstPlayer.other]!.guessCount
+              ? firstPlayer
+              : firstPlayer.other);
+    if (last != null) _resolve(last);
+  }
+
+  /// Saves the match so it can be resumed with [DuelMatch.fromJson].
+  Map<String, dynamic> toJson() => {
+    'config': config.toJson(),
+    'firstPlayer': firstPlayer.name,
+    'equalTurns': equalTurns,
+    'turn': _turn.name,
+    'a': sessionOf(PlayerSlot.a).toJson(),
+    'b': sessionOf(PlayerSlot.b).toJson(),
+  };
+
+  /// Rebuilds a match saved with [toJson]. Unfinished sessions come back
+  /// paused; call [resumeClocks] when play continues.
+  factory DuelMatch.fromJson(
+    Map<String, dynamic> json, {
+    Clock clock = systemClock,
+  }) => DuelMatch._restored(
+    config: GameConfig.fromJson(json['config'] as Map<String, dynamic>),
+    firstPlayer: PlayerSlot.values.byName(json['firstPlayer'] as String),
+    equalTurns: json['equalTurns'] as bool,
+    turn: PlayerSlot.values.byName(json['turn'] as String),
+    sessions: {
+      for (final p in PlayerSlot.values)
+        p: GameSession.fromJson(
+          json[p.name] as Map<String, dynamic>,
+          clock: clock,
+        ),
+    },
+  );
+
+  /// Starts both players' timers, e.g. when the board first appears.
+  void start() {
+    for (final s in _sessions.values) {
+      s.start();
+    }
+  }
+
+  void pauseClocks() {
+    for (final s in _sessions.values) {
+      s.pause();
+    }
+  }
+
+  void resumeClocks() {
+    for (final s in _sessions.values) {
+      s.resume();
+    }
+  }
+
   @override
   MatchMode get mode => MatchMode.duel;
   @override

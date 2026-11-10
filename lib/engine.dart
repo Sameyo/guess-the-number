@@ -9,4 +9,5 @@ export 'engine/game_session.dart';
 export 'engine/levels.dart';
 export 'engine/multiplayer.dart';
 export 'engine/score.dart';
+export 'engine/solver.dart';
 export 'engine/stats.dart';
