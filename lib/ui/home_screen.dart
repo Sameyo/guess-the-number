@@ -134,16 +134,6 @@ class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      const Text(
-        'GUESS THE',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 6,
-          color: Palette.inkSoft,
-        ),
-      ),
-      const SizedBox(height: 6),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -154,14 +144,23 @@ class _Logo extends StatelessWidget {
             ),
         ],
       ),
-      const SizedBox(height: 6),
+      const SizedBox(height: 8),
       const Text(
-        'NUMBER',
+        'GIMIT',
         style: TextStyle(
-          fontSize: 30,
+          fontSize: 34,
           fontWeight: FontWeight.w900,
-          letterSpacing: 8,
+          letterSpacing: 10,
           color: Palette.ink,
+        ),
+      ),
+      const Text(
+        'GUESS THE NUMBER',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 4,
+          color: Palette.inkSoft,
         ),
       ),
     ],
