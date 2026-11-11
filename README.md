@@ -1,4 +1,4 @@
-# Guess the Number
+# Gimit
 
 A number-guessing game for iOS and Android, built with Flutter.
 

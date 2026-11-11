@@ -20,7 +20,7 @@ class GuessTheNumberApp extends StatelessWidget {
   Widget build(BuildContext context) => StoreScope(
     store: store,
     child: MaterialApp(
-      title: 'Guess the Number',
+      title: 'Gimit',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       home: const HomeScreen(),

@@ -1,4 +1,4 @@
-package com.sameyo.guess_the_number
+package com.sameyo.gimit
 
 import io.flutter.embedding.android.FlutterActivity
 
