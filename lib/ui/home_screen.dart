@@ -137,7 +137,7 @@ class _Logo extends StatelessWidget {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          for (final (i, d) in const [7, 3, 9, 1, 5].indexed)
+          for (final (i, d) in const [7, 3, 9, 1].indexed)
             Transform.rotate(
               angle: (i.isEven ? -1 : 1) * 0.08,
               child: DigitTile(d, size: 46),
