@@ -241,7 +241,7 @@ class _ResumeCard extends StatelessWidget {
           final label = saved.kind == GameKind.level
               ? 'level ${(d['levelId'] as String).substring(1)}'
               : '${cfg['digitCount']}-digit game';
-          return (label, '$guesses guesses · $time');
+          return (label, '${guessCountLabel(guesses)} · $time');
         case GameKind.kutir:
         case GameKind.local:
           final m = d['match'] as Map<String, dynamic>;
