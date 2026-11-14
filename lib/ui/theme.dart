@@ -78,3 +78,6 @@ String formatDuration(Duration d) {
   final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
   return h > 0 ? '$h:$m:$s' : '$m:$s';
 }
+
+/// "1 guess", "5 guesses".
+String guessCountLabel(int n) => n == 1 ? '1 guess' : '$n guesses';
