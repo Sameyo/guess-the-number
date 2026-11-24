@@ -177,8 +177,8 @@ class _DuelScreenState extends State<DuelScreen> with WidgetsBindingObserver {
     String line(PlayerSlot p, GameSession s) {
       final who = _vsKutir && p == PlayerSlot.a ? 'You' : _name(p);
       return s.status == GameStatus.won
-          ? '$who cracked it in ${s.guessCount} guesses'
-          : '$who made ${s.guessCount} guesses';
+          ? '$who cracked it in ${guessCountLabel(s.guessCount)}'
+          : '$who made ${guessCountLabel(s.guessCount)}';
     }
 
     final again = await showResultDialog(

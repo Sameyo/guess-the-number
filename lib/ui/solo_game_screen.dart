@@ -147,7 +147,7 @@ class _SoloGameScreenState extends State<SoloGameScreen>
             },
       secret: _game.secret,
       lines: [
-        '${result.guessCount} guesses in ${formatDuration(result.duration)}',
+        '${guessCountLabel(result.guessCount)} in ${formatDuration(result.duration)}',
         if (widget.level == null && records.fewestGuesses)
           'New record: fewest guesses!',
         if (widget.level == null && records.fastestTime)
